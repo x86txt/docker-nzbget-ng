@@ -1,8 +1,7 @@
 # Buildstage
-FROM ghcr.io/linuxserver/baseimage-alpine:3.16 as buildstage
+FROM ghcr.io/linuxserver/baseimage-alpine:3.17 as buildstage
 
-# set NZBGET version
-ARG NZBGET_RELEASE
+ADD "https://api.github.com/repos/nzbget-ng/nzbget/commits?per_page=1" latest_commit
 
 RUN \
   echo "**** install build packages ****" && \
@@ -12,22 +11,20 @@ RUN \
     git \
     libxml2-dev \
     libxslt-dev \
-    make \
+    libcap-dev \
+    autoconf automake make \
     ncurses-dev \
     openssl-dev && \
   echo "**** build nzbget ****" && \
-  if [ -z ${NZBGET_RELEASE+x} ]; then \
-    NZBGET_RELEASE=$(curl -sX GET "https://api.github.com/repos/nzbget/nzbget/releases/latest" \
-      | awk '/tag_name/{print $4;exit}' FS='[""]'); \
-  fi && \
   mkdir -p /app/nzbget && \
-  git clone https://github.com/nzbget/nzbget.git nzbget && \
+  git clone https://github.com/nzbget-ng/nzbget.git nzbget && \
   cd nzbget/ && \
-  git checkout ${NZBGET_RELEASE} && \
+  git checkout develop && \
   git cherry-pick -n fa57474d && \
+  make && \
   ./configure \
     bindir='${exec_prefix}' && \
-  make && \
+  make -j && \
   make prefix=/app/nzbget install && \
   sed -i \
     -e "s#^MainDir=.*#MainDir=/downloads#g" \
@@ -53,7 +50,7 @@ RUN \
     "https://curl.haxx.se/ca/cacert.pem"
 
 # Runtime Stage
-FROM ghcr.io/linuxserver/baseimage-alpine:3.16
+FROM ghcr.io/linuxserver/baseimage-alpine:3.17
 
 ARG UNRAR_VERSION=6.1.7
 # set version label
@@ -72,6 +69,7 @@ RUN \
     libffi-dev \
     libxml2-dev \
     libxslt-dev \
+    libcap-dev \
     make \
     openssl-dev \
     python3-dev && \
@@ -79,6 +77,7 @@ RUN \
   apk add --no-cache \
     libxml2 \
     libxslt \
+    libcap \
     openssl \
     p7zip \
     py3-pip \
@@ -106,7 +105,6 @@ RUN \
     pynzbget \
     rarfile \
     six && \
-  ln -s /usr/bin/python3 /usr/bin/python && \
   echo "**** cleanup ****" && \
   apk del --purge \
     build-dependencies && \
