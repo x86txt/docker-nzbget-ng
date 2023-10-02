@@ -27,7 +27,7 @@ jobs:
             context: .
             platforms: linux/amd64,linux/arm64
             push: true
-            tags: user/app:latest
+            tags: x86txt/nzbget-ng:latest
       - name: Update repo description
         uses: peter-evans/dockerhub-description@v3
         with:
