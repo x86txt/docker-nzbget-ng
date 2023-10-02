@@ -37,7 +37,7 @@ jobs:
             push: true
             tags: x86txt/nzbget-ng:latest
             cache-from: type=local,src=/tmp/.buildx-cache
-            cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
+            cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max,compression=zstd,compression-level=22
       
       - name: Move cache
         run: |
