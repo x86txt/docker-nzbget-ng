@@ -34,3 +34,4 @@ jobs:
             username: ${{ secrets.DOCKERHUB_USERNAME }}
             password: ${{ secrets.DOCKERHUB_TOKEN }}
             repository: x86txt/nzbget-ng
+            short-description: ${{ github.event.repository.description }}
